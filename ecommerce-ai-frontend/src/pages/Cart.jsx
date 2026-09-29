@@ -30,13 +30,49 @@ export default function Cart() {
     fetchCart();
   };
 
-  const handleCheckout = async () => {
+    const handleCheckout = async () => {
     setPlacing(true);
     try {
-      await api.post('/orders');
-      navigate('/orders');
+      // 1. Create the order in our DB (status: pending)
+      const orderRes = await api.post('/orders');
+      const order = orderRes.data;
+
+      // 2. Create a Razorpay order for this order's total
+      const payRes = await api.post('/payments/create-order', { orderId: order._id });
+      const { razorpayOrderId, amount, currency, keyId } = payRes.data;
+
+      // 3. Open Razorpay checkout widget
+      const options = {
+        key: keyId,
+        amount,
+        currency,
+        name: 'Nexora',
+        description: `Order #${order._id.slice(-6)}`,
+        order_id: razorpayOrderId,
+        handler: async (response) => {
+          try {
+            await api.post('/payments/verify', {
+              orderId: order._id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            navigate('/orders');
+          } catch (err) {
+            alert('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: user?.name,
+          email: user?.email,
+        },
+        theme: { color: '#6c4cff' },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to place order');
+      alert(err.response?.data?.message || 'Failed to start checkout');
     } finally {
       setPlacing(false);
     }
@@ -60,7 +96,11 @@ export default function Cart() {
         {cart.map((item) => (
           <div key={item._id} className="flex items-center justify-between border border-ink-200 rounded-xl p-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-ink-50 rounded-lg" />
+              <div className="w-16 h-16 bg-ink-50 rounded-lg overflow-hidden">
+  {item.product?.images?.[0] && (
+    <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />
+  )}
+</div>
               <div>
                 <p className="text-sm font-medium">{item.product?.name}</p>
                 <p className="text-xs text-ink-400">Qty: {item.quantity}</p>

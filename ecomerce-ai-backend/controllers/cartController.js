@@ -6,6 +6,9 @@ const Product = require('../models/Product');
 const getCart = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('cart.product');
+    if (!user) {
+      return res.status(401).json({ message: 'User not found, please log in again' });
+    }
     res.json(user.cart);
   } catch (error) {
     res.status(500).json({ message: error.message });

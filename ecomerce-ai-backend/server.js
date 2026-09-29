@@ -10,6 +10,7 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send('API is running...'));
 
+app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));

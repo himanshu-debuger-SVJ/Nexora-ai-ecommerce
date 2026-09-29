@@ -1,10 +1,10 @@
 require('dotenv').config();
-const axios = require('axios');
+const mongoose = require('mongoose');
+const dns = require('dns');
+const Product = require('../models/Product');
+const { generateEmbedding } = require('../utils/embeddings');
 
-const API_URL = 'http://localhost:5000/api';
-
-// Paste a fresh ADMIN token here (log in as your admin user, copy the token)
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const products = [
   { name: 'Cotton T-Shirt', description: 'Soft breathable everyday t-shirt', price: 499, category: 'fashion', stock: 40, images: ['https://picsum.photos/seed/tshirt1/400/400'] },
@@ -28,17 +28,21 @@ const products = [
 ];
 
 const seed = async () => {
-  for (const product of products) {
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log('Connected to DB. Seeding...');
+
+  for (const p of products) {
     try {
-      const res = await axios.post(`${API_URL}/products`, product, {
-        headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-      });
-      console.log(`Created: ${res.data.name}`);
+      const embedding = await generateEmbedding(`${p.name} ${p.description} ${p.category}`);
+      await Product.create({ ...p, embedding });
+      console.log(`Created: ${p.name}`);
     } catch (err) {
-      console.error(`Failed: ${product.name} —`, err.response?.data?.message || err.message);
+      console.error(`Failed: ${p.name} —`, err.message);
     }
   }
+
   console.log('Seeding complete.');
+  mongoose.disconnect();
 };
 
 seed();

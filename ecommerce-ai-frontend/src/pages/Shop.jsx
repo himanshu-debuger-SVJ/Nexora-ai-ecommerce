@@ -85,7 +85,11 @@ export default function Shop() {
                 to={`/product/${item._id}`}
                 className="border border-ink-200 rounded-xl p-4 hover:shadow-lg transition-shadow block"
               >
-                <div className="h-32 bg-ink-50 rounded-lg mb-3" />
+                <div className="h-32 bg-ink-50 rounded-lg mb-3 overflow-hidden">
+  {item.images?.[0] && (
+    <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover" />
+  )}
+</div>
                 <p className="text-sm font-medium mb-1">{item.name}</p>
                 <p className="text-sm font-bold">₹{item.price}</p>
                 <p className="text-xs text-ink-400 capitalize">{item.category}</p>

@@ -43,7 +43,11 @@ export default function ProductDetail() {
     <div className="max-w-7xl mx-auto px-6 py-10">
       <div className="text-sm text-ink-400 mb-6">Home / {product.category} / {product.name}</div>
       <div className="grid md:grid-cols-2 gap-10">
-        <div className="h-96 bg-ink-50 rounded-xl" />
+        <div className="h-96 bg-ink-50 rounded-xl overflow-hidden">
+  {product.images?.[0] && (
+    <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+  )}
+</div>
         <div>
           <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
           <p className="text-sm text-ink-400 capitalize mb-4">{product.category}</p>
