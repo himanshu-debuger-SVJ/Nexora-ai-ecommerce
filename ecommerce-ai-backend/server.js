@@ -6,7 +6,7 @@ const connectDB = require('./config/db');
 connectDB();
 const app = express();
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://nexora-6rfv.onrender.com'],
+  origin: ['http://localhost:5173', 'https://nexora-ai-ecommerce-flame.vercel.app'],
   credentials: true,
 }));
 app.use(express.json());
